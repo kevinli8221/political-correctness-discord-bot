@@ -2,6 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
+const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
+const Transcriber = require("discord-speech-to-text");
+
 
 // new client instance
 const client = new Client({ 
@@ -11,6 +14,7 @@ const client = new Client({
         GatewayIntentBits.DirectMessages,
         GatewayIntentBits.GuildBans,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
     ] 
 });
 
@@ -57,7 +61,7 @@ client.on('messageCreate', async (message) => {
 
 // slash command event
 client.on('interactionCreate', async interaction => {
-
+    
 	if (!interaction.isChatInputCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);
@@ -73,5 +77,41 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
+// join slash command
+client.on('interactionCreate', (interaction) => {
+    if (interaction.isChatInputCommand()) {
+        if (interaction.commandName === 'join') {
+            const voiceChannel = interaction.options.getChannel('channel');
+            const voiceConnection = joinVoiceChannel({
+                channelId: voiceChannel.id,
+                guildId: interaction.guildId,
+                adapterCreator: interaction.guild.voiceAdapterCreator,
+            })
+            //console.log(voiceConnection)
+            voiceConnection.on(VoiceConnectionStatus.Ready, () => {
+                console.log('The connection has entered the Ready state - ready to play audio!');
+            });
+        }
+    }
+})
+
+
+// speech to text handling
+// const transcriber = new Transcriber(`OBF2CDFSNBRM6TWKGGBMBAONXSEYQ3DG`);
+// let channel = interaction.member.guild.channels.cache.get(interaction.member.voice.channel.id);
+// const connection = joinVoiceChannel({
+//   channelId: channel.id,
+//   guildId: channel.guild.id,
+//   adapterCreator: channel.guild.voiceAdapterCreator,
+//   selfDeaf: false,
+//   selfMute: false
+// });
+// connection.receiver.speaking.on("start", (userId) => {
+//   transcriber.listen(connection.receiver, userId, client.users.cache.get(userId)).then((data) => {
+//     if (!data.transcript.text) return;
+//     let text = data.transcript.text;
+//     let user = data.user;
+//   });
+// });
 
 client.login(token);
