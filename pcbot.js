@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
-const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
+const { joinVoiceChannel, VoiceConnectionStatus, getVoiceConnection } = require('@discordjs/voice');
 const Transcriber = require("discord-speech-to-text");
 
 
@@ -77,7 +77,7 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-// join slash command
+// join + disconnect slash command
 client.on('interactionCreate', (interaction) => {
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'join') {
@@ -92,8 +92,26 @@ client.on('interactionCreate', (interaction) => {
                 console.log('The connection has entered the Ready state - ready to play audio!');
             });
         }
+        if (interaction.commandName === 'disconnect') {
+            const connection = getVoiceConnection(interaction.guildId);
+            //console.log(connection)
+            try { 
+                connection.destroy();
+            } catch (error) {
+                console.log('error dissconnecting')
+            }
+        }
     }
 })
+
+// leave slash command
+// client.on('interactionCreate', (interaction) => {
+//     if (interaction.isChatInputCommand()) {
+//         if (interaction.commandName === 'disconnect') {
+            
+//         }
+//     }
+// })
 
 
 // speech to text handling
