@@ -18,11 +18,15 @@
   "homepage": "https://github.com/seaweed333/political-correctness-discord-bot#readme",
   "keywords": [],
   "dependencies": {
+    "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "^1.0.1",
     "@discordjs/voice": "^0.11.0",
     "discord-speech-to-text": "^1.1.5",
     "discord.js": "^14.2.0",
-    "libsodium-wrappers": "^0.7.10"
+    "libsodium-wrappers": "^0.7.10",
+    "node-witai-speech": "^1.0.2",
+    "prism-media": "^1.3.4",
+    "underscore": "^1.13.4"
   },
   "devDependencies": {
     "eslint": "^8.22.0"

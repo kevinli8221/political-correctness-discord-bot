@@ -4,6 +4,7 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 const { joinVoiceChannel, VoiceConnectionStatus, getVoiceConnection } = require('@discordjs/voice');
 const Transcriber = require("discord-speech-to-text");
+const { channel } = require('node:diagnostics_channel');
 
 
 // new client instance
@@ -77,20 +78,39 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-// join + disconnect slash command
+const transcriber = new Transcriber("OBF2CDFSNBRM6TWKGGBMBAONXSEYQ3DG");
+// voice handling
 client.on('interactionCreate', (interaction) => {
     if (interaction.isChatInputCommand()) {
+        const voiceChannel = interaction.options.getChannel('channel');
         if (interaction.commandName === 'join') {
-            const voiceChannel = interaction.options.getChannel('channel');
+            //const voiceChannel = interaction.options.getChannel('channel');
             const voiceConnection = joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: interaction.guildId,
                 adapterCreator: interaction.guild.voiceAdapterCreator,
+                selfDeaf: false,
+                selfMute: false,
             })
             //console.log(voiceConnection)
             voiceConnection.on(VoiceConnectionStatus.Ready, () => {
-                console.log('The connection has entered the Ready state - ready to play audio!');
+                console.log('The connection has entered the Ready state - ready to listen!');
             });
+            voiceConnection.receiver.speaking.on("start", (userId) => {
+                transcriber.listen(voiceConnection.receiver, userId, client.users.cache.get(userId)).then((data) => {
+                  if (!data.transcript.text) return;
+                  let text = data.transcript.text;
+                  let user = data.user.username;
+                  let tag = data.user.discriminator;
+                  let confidence = data.transcript.speech.confidence
+                  let rac = racism(text)
+                  console.log(`${user}#${tag} (${confidence}): ${text} | ${rac}`);
+                  
+                  client.channels.cache.get('1010761887761313844').send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
+
+                  //console.log(data);
+                });
+              });
         }
         if (interaction.commandName === 'disconnect') {
             const connection = getVoiceConnection(interaction.guildId);
@@ -98,11 +118,23 @@ client.on('interactionCreate', (interaction) => {
             try { 
                 connection.destroy();
             } catch (error) {
-                console.log('error dissconnecting')
+                console.log('error disconnecting')
             }
         }
     }
 })
+
+function racism(string) {
+    var words = string.split(" ");
+    var answer = "";
+    var count = 0.0;
+    var ratio = 0.0;
+    for (var i = 0; i < words.length; i++) {
+        if (words[i] === 'Nigger' || words[i] === 'nigger' || words[i] === 'Nigga')
+        count++;
+    }
+    return count/words.length;
+}
 
 // leave slash command
 // client.on('interactionCreate', (interaction) => {
@@ -115,7 +147,7 @@ client.on('interactionCreate', (interaction) => {
 
 
 // speech to text handling
-// const transcriber = new Transcriber(`OBF2CDFSNBRM6TWKGGBMBAONXSEYQ3DG`);
+//const transcriber = new Transcriber(wit_key);
 // let channel = interaction.member.guild.channels.cache.get(interaction.member.voice.channel.id);
 // const connection = joinVoiceChannel({
 //   channelId: channel.id,
