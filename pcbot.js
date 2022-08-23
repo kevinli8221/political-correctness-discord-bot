@@ -1,13 +1,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { token, Cannon_bot_text, seaweed_bot_text } = require('./config.json');
 const { joinVoiceChannel, VoiceConnectionStatus, getVoiceConnection } = require('@discordjs/voice');
 const Transcriber = require("discord-speech-to-text");
-const { channel } = require('node:diagnostics_channel');
 
 
-// new client instance
+// new client instance || Intents
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -72,7 +71,6 @@ client.on('interactionCreate', (interaction) => {
     if (interaction.isChatInputCommand()) {
         const voiceChannel = interaction.options.getChannel('channel');
         if (interaction.commandName === 'join') {
-            //const voiceChannel = interaction.options.getChannel('channel');
             const voiceConnection = joinVoiceChannel({
                 channelId: voiceChannel.id,
                 guildId: interaction.guildId,
@@ -82,7 +80,7 @@ client.on('interactionCreate', (interaction) => {
             })
             //console.log(voiceConnection)
             voiceConnection.on(VoiceConnectionStatus.Ready, () => {
-                console.log('The connection has entered the Ready state - ready to listen!');
+                console.log(`The connection has entered the Ready state - ready to listen!\n`);
             });
             voiceConnection.receiver.speaking.on("start", (userId) => {
                 transcriber.listen(voiceConnection.receiver, userId, client.users.cache.get(userId)).then((data) => {
@@ -92,10 +90,10 @@ client.on('interactionCreate', (interaction) => {
                   let tag = data.user.discriminator;
                   let confidence = data.transcript.speech.confidence
                   let rac = racism(text)
-                  console.log(`${user}#${tag} (${confidence}): ${text} | ${rac}`);
+                  //console.log(`${user}#${tag} (${confidence}): ${text} | ${rac}`);
                   
-                  client.channels.cache.get('1010761887761313844').send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
-
+                  //client.channels.cache.get(cannon_bot_text).send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
+                  client.channels.cache.get(seaweed_bot_text).send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
                   //console.log(data);
                 });
               });
