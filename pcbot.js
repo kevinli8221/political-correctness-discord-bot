@@ -32,19 +32,6 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
-// // event handling
-// const eventsPath = path.join(__dirname, 'events');
-// const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-
-// for (const file of eventFiles) {
-// 	const filePath = path.join(eventsPath, file);
-// 	const event = require(filePath);
-// 	if (event.once) {
-// 		client.once(event.name, (...args) => event.execute(...args));
-// 	} else {
-// 		client.on(event.name, (...args) => event.execute(...args));
-// 	}
-// }
 
 // bot ready event
 client.once('ready', c => {
@@ -59,6 +46,7 @@ client.on('messageCreate', async (message) => {
         console.log(`Nigger Counter${n_count}`)
     }
   });
+
 
 // slash command event
 client.on('interactionCreate', async interaction => {
@@ -78,8 +66,8 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-const transcriber = new Transcriber("OBF2CDFSNBRM6TWKGGBMBAONXSEYQ3DG");
 // voice handling
+const transcriber = new Transcriber("OBF2CDFSNBRM6TWKGGBMBAONXSEYQ3DG");
 client.on('interactionCreate', (interaction) => {
     if (interaction.isChatInputCommand()) {
         const voiceChannel = interaction.options.getChannel('channel');
@@ -135,33 +123,5 @@ function racism(string) {
     }
     return count/words.length;
 }
-
-// leave slash command
-// client.on('interactionCreate', (interaction) => {
-//     if (interaction.isChatInputCommand()) {
-//         if (interaction.commandName === 'disconnect') {
-            
-//         }
-//     }
-// })
-
-
-// speech to text handling
-//const transcriber = new Transcriber(wit_key);
-// let channel = interaction.member.guild.channels.cache.get(interaction.member.voice.channel.id);
-// const connection = joinVoiceChannel({
-//   channelId: channel.id,
-//   guildId: channel.guild.id,
-//   adapterCreator: channel.guild.voiceAdapterCreator,
-//   selfDeaf: false,
-//   selfMute: false
-// });
-// connection.receiver.speaking.on("start", (userId) => {
-//   transcriber.listen(connection.receiver, userId, client.users.cache.get(userId)).then((data) => {
-//     if (!data.transcript.text) return;
-//     let text = data.transcript.text;
-//     let user = data.user;
-//   });
-// });
 
 client.login(token);
