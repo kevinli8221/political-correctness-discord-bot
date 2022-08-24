@@ -93,7 +93,7 @@ client.on('interactionCreate', (interaction) => {
                   //console.log(`${user}#${tag} (${confidence}): ${text} | ${rac}`);
                   
                   //client.channels.cache.get(cannon_bot_text).send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
-                  client.channels.cache.get(seaweed_bot_text).send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
+                  client.channels.cache.get(seaweed_bot_text).send(`${user}#${tag} (${confidence}) {racism: ${rac}}: ${text}`)
                   //console.log(data);
                 });
               });
