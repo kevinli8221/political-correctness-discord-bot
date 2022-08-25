@@ -7,3 +7,5 @@ discord.js
 discord.js/voice
 discord-speech-to-text
 prism-media
+sequelize
+sqlite3
