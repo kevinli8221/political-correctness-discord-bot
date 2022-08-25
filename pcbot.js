@@ -5,6 +5,17 @@ const { token, wit_key, Cannon_bot_text, seaweed_bot_text } = require('./config.
 const { joinVoiceChannel, VoiceConnectionStatus, getVoiceConnection } = require('@discordjs/voice');
 const Transcriber = require("discord-speech-to-text");
 const Sequelize = require('sequelize');
+//const {sequelize, Tags} = require('./pcdata.js');
+//const {pcdata} = require('./pcdata.js');
+
+const {
+    word_data,
+    b1,
+    b1a,
+    b2,
+    b3,
+    b4
+} = require('./dataconfig.json')
 
 // new client instance || Intents
 const client = new Client({ 
@@ -20,9 +31,10 @@ const client = new Client({
 
 // bot ready event
 client.once('ready', () => {
-    Tags.sync();
-    //Tags.sync({ force: true }) // Debugging only!!!, clears tags on restart
+    //Tags.sync();
+    Tags.sync({ force: true }) // Debugging only!!!, clears tags on restart
 	console.log(`Ready! Logged in as ${client.user.tag}`);
+    //console.log(words)
 });
 
 // Sequelize database handling
@@ -30,23 +42,39 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 	host: 'localhost',
 	dialect: 'sqlite',
 	logging: false,
-	// SQLite only
 	storage: 'database.sqlite',
 });
 
-const Tags = sequelize.define('tags', {
-	name: {
-		type: Sequelize.STRING,
-		unique: true,
-	},
-	description: Sequelize.TEXT,
-	username: Sequelize.STRING,
-	usage_count: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-	},
+const Tags = sequelize.define('tags', { 
+    // test: { // user id
+    //     type: Sequelize.STRING,
+    //     unique: true,
+    // },
+    id: { // user id
+        type: Sequelize.STRING,
+        unique: true,
+        primaryKey: true,
+    },
+    b1_count: { 
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+    },
 });
+
+// const Tags = sequelize.define('tags', {
+// 	name: {
+// 		type: Sequelize.STRING,
+// 		unique: true,
+// 	},
+// 	description: Sequelize.TEXT,
+// 	username: Sequelize.STRING,
+// 	usage_count: {
+// 		type: Sequelize.INTEGER,
+// 		defaultValue: 0,
+// 		allowNull: false,
+// 	},
+// });
 
 // command handling
 client.commands = new Collection();
@@ -114,15 +142,20 @@ client.on('interactionCreate', (interaction) => {
         voiceConnection.receiver.speaking.on("start", (userId) => {
             transcriber.listen(voiceConnection.receiver, userId, client.users.cache.get(userId)).then((data) => {
                 if (!data.transcript.text) return;
+
                 let text = data.transcript.text;
                 let user = data.user.username;
                 let tag = data.user.discriminator;
                 let confidence = data.transcript.speech.confidence
-                let rac = racism(text)
-                console.log(`${user}#${tag} (${confidence}) {racism: ${rac}}: ${text}`);
+
+                let clean_text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                clean_text = clean_text.toLowerCase()
+
+                let rac = racism(clean_text)
+                console.log(`${user}#${tag} (${confidence}) {racism: ${rac}}: ${clean_text}`);
                 
                 //client.channels.cache.get(cannon_bot_text).send(`${user}#${tag} (${confidence}): ${text} | ${rac}`)
-                client.channels.cache.get(seaweed_bot_text).send(`${user}#${tag} (${confidence}) {racism: ${rac}}: ${text}`)
+                client.channels.cache.get(seaweed_bot_text).send(`${user}#${tag} (${confidence}) {racism: ${rac}}: ${clean_text}`)
                 //console.log(data);
             });
             });
@@ -143,10 +176,17 @@ function racism(string) {
     var words = string.split(" ");
     var count = 0.0
     for (var i = 0; i < words.length; i++) {
-        if (words[i] === 'Nigger' || words[i] === 'nigger' || words[i] === 'Nigga')
+        if (words[i] === b1 || words[i] === b1a) {
         count++;
     }
     return count/words.length;
+}
+
+async function update_tags(string) {
+
+    // check if exists, if not create new Tag
+    if ()
+    
 }
 
 client.on('interactionCreate', async interaction => {
@@ -159,6 +199,7 @@ client.on('interactionCreate', async interaction => {
 		const tagDescription = interaction.options.getString('description');
 
 		try {
+			// equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
 			const tag = await Tags.create({
 				name: tagName,
 				description: tagDescription,
@@ -175,42 +216,45 @@ client.on('interactionCreate', async interaction => {
 			return interaction.reply('Something went wrong with adding a tag.');
 		}
 	}
-    else if (interaction.commandName === 'tag') {
-        const tagName = interaction.options.getString('name');
+    // else if (interaction.commandName === 'tag') {
+    //     const tagName = interaction.options.getString('test');
     
-        const tag = await Tags.findOne({ where: { name: tagName } });
+    //     const tag = await Tags.findOne({ where: { name: test } });
     
-        if (tag) {
-            tag.increment('usage_count');
+    //     if (tag) {
+    //         //tag.increment('usage_count');
+            
+    //         console.log(tag);
+    //         return interaction.reply(`{tag.get('description')}, ${tag.get('test')}, ${tag.get('id')}`);
+    //     }
     
-            return interaction.reply(`${tag.get('description')}, ${tag.get('username')}, ${tag.get('usage_count')}`);
-        }
-    
-        return interaction.reply(`Could not find tag: ${tagName}`);
-    }
-    else if (interaction.commandName === 'showtags') {
+    //     return interaction.reply(`Could not find tag: ${tagName}`);
+    // }
+    if (interaction.commandName === 'showtags') {
         const tagList = await Tags.findAll({ attributes: ['name'] });
-        const tagString = tagList.map(t => t.name).join(', ') || 'No tags set.';
-    
-        return interaction.reply(`List of tags: ${tagString}`);
-    }
+	    const tagString = tagList.map(t => t.name).join(', ') || 'No tags set.';
+
+	return interaction.reply(`List of tags: ${tagString}`);
+}
     else if (interaction.commandName == 'taginfo') {
         const tagName = interaction.options.getString('name');
-    
+
+        // equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
         const tag = await Tags.findOne({ where: { name: tagName } });
-    
+
         if (tag) {
             return interaction.reply(`${tagName} was created by ${tag.username} at ${tag.createdAt} and has been used ${tag.usage_count} times.`);
         }
-    
+
         return interaction.reply(`Could not find tag: ${tagName}`);
     }
     else if (interaction.commandName === 'deletetag') {
         const tagName = interaction.options.getString('name');
+        // equivalent to: DELETE from tags WHERE name = ?;
         const rowCount = await Tags.destroy({ where: { name: tagName } });
-    
+
         if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
-    
+
         return interaction.reply('Tag deleted.');
     }
 });
