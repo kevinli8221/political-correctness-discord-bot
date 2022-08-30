@@ -178,6 +178,7 @@ function racism(string) {
     for (var i = 0; i < words.length; i++) {
         if (words[i] === b1 || words[i] === b1a) {
         count++;
+        }
     }
     return count/words.length;
 }
